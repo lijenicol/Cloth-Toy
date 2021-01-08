@@ -78,6 +78,10 @@ glm::vec3 Particle::getForce() { return force; }
 bool Particle::getFixed() { return fixed; }
 void Particle::setFixed(bool fixed) {this->fixed = fixed;}
 
-void Particle::movePosition(glm::vec3 deltaPosition) { position += deltaPosition; }
+void Particle::movePosition(glm::vec3 deltaPosition) { 
+	position += deltaPosition; 
+	if (position.y < 0)
+		position.y = 0.001f;
+}
 void Particle::setPosition(glm::vec3 position) {this->position = position;}
 void Particle::setVelocity(glm::vec3 velocity) { this->velocity = velocity; }

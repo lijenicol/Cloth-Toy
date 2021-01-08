@@ -61,7 +61,7 @@ private:
 	//Interactive 
 	float windSpeed;
 	float windX, windY, windZ;
-	bool toggleWind;
+	bool toggleWind, displayGround;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

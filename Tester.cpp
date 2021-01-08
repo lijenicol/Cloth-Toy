@@ -50,6 +50,7 @@ Tester::Tester(const char *windowTitle,int argc,char **argv) {
 	windZ = 1.0f;
 	toggleWind = false;
 	interactMode = false;
+	displayGround = true;
 
 	// Create the window
 	glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
@@ -153,7 +154,8 @@ void Tester::Draw() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//draw plane
-	plane->draw(Cam->GetViewProjectMtx(), Program->GetProgramID());
+	if(displayGround)
+		plane->draw(Cam->GetViewProjectMtx(), Program->GetProgramID());
 
 	// Draw cloth
 	cloth->draw(Cam->GetViewProjectMtx(), Program->GetProgramID());
@@ -165,6 +167,7 @@ void Tester::Draw() {
 		ImGui::Begin("Cloth Toy"); 
 		ImGui::Text("Move cloth around with WASD keys. To move up/down use U and I keys.");
 		ImGui::Checkbox("Interact w/ Cloth", &interactMode);
+		ImGui::Checkbox("Display Ground", &displayGround);
 		ImGui::Checkbox("Wind", &toggleWind);
 		ImGui::SliderFloat("Wind Speed", &windSpeed, 0.f, 15.f);
 
