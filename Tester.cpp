@@ -5,6 +5,10 @@
 #include "Tester.h"
 #include <iostream>
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glut.h"
+#include "imgui/imgui_impl_opengl2.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 
 static Tester *TESTER=0;
@@ -12,7 +16,7 @@ static Tester *TESTER=0;
 int main(int argc, char **argv) {
 	glutInit(&argc, argv);
 
-	TESTER=new Tester("Project One",argc,argv);
+	TESTER=new Tester("Cloth Toy",argc,argv);
 	glutMainLoop();
 	delete TESTER;
 
@@ -33,14 +37,17 @@ static void mousemotion(int x, int y)					{TESTER->MouseMotion(x,y);}
 ////////////////////////////////////////////////////////////////////////////////
 
 Tester::Tester(const char *windowTitle,int argc,char **argv) {
-	WinX=800;
-	WinY=600;
+	WinX=1280;
+	WinY=720;
 	LeftDown=MiddleDown=RightDown=false;
 	MouseX=MouseY=0;
 	prevTime = 0;
 	currentTime = 0;
 	deltaTime = 0;
 	windSpeed = 1.0f;
+	windX = 0.0f;
+	windY = 0.0f;
+	windZ = 1.0f;
 	toggleWind = false;
 	interactMode = false;
 
@@ -70,6 +77,18 @@ Tester::Tester(const char *windowTitle,int argc,char **argv) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
+	// Setup Dear ImGui context
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+
+	// Setup Platform/Renderer bindings
+	ImGui_ImplGLUT_Init();
+	ImGui_ImplGLUT_InstallFuncs();
+	ImGui_ImplOpenGL2_Init();
+
 	// Initialize components
 	Program=new ShaderProgram("Model.glsl",ShaderProgram::eRender);
 	Cam=new Camera;
@@ -88,6 +107,11 @@ Tester::~Tester() {
 	delete Program;
 	delete Cam;
 
+	// Cleanup imgui
+	ImGui_ImplOpenGL2_Shutdown();
+	ImGui_ImplGLUT_Shutdown();
+	ImGui::DestroyContext();
+
 	glFinish();
 	glutDestroyWindow(WindowHandle);
 }
@@ -99,12 +123,15 @@ void Tester::Update() {
 	currentTime = glutGet(GLUT_ELAPSED_TIME);
 	deltaTime = (currentTime - prevTime)/1000.f;
 	prevTime = currentTime;
+	
+	// Calculate wind direction/speed
+	glm::vec3 wind(windSpeed * glm::normalize(glm::vec3(windX, windY, windZ)));
 
 	// Update the components in the world
 	Cam->Update();
 
 	cloth->applyAcceleration(glm::vec3(0,-9.8,0));
-	cloth->applyAerodynamicForce(toggleWind ? glm::vec3(0,0,windSpeed) : glm::vec3(0, 0, 0));
+	cloth->applyAerodynamicForce(toggleWind ? wind : glm::vec3(0, 0, 0));
 	cloth->update(deltaTime);
 
 	// Tell glut to re-display the scene
@@ -131,6 +158,38 @@ void Tester::Draw() {
 	// Draw cloth
 	cloth->draw(Cam->GetViewProjectMtx(), Program->GetProgramID());
 
+	// Render GUI
+	ImGui_ImplOpenGL2_NewFrame();
+	ImGui_ImplGLUT_NewFrame();
+	{
+		ImGui::Begin("Cloth Toy"); 
+		ImGui::Text("Move cloth around with WASD keys. To move up/down use U and I keys.");
+		ImGui::Checkbox("Interact w/ Cloth", &interactMode);
+		ImGui::Checkbox("Wind", &toggleWind);
+		ImGui::SliderFloat("Wind Speed", &windSpeed, 0.f, 15.f);
+
+		// Wind direction
+		ImGui::PushItemWidth(100);
+		ImGui::Text("Wind Direction:"); ImGui::SameLine();
+		ImGui::SliderFloat("X", &windX, -1.f, 1.f); ImGui::SameLine();
+		ImGui::SliderFloat("Y", &windY, -1.f, 1.f); ImGui::SameLine();
+		ImGui::SliderFloat("Z", &windZ, -1.f, 1.f); 
+		ImGui::PopItemWidth();
+
+		if (ImGui::Button("Reset"))
+			Reset();
+		ImGui::SameLine();
+		if (ImGui::Button("Free Cloth"))
+			cloth->freeClothFixedPoints();
+
+		// Framerate
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
+	}
+	glUseProgram(0);
+	ImGui::Render();
+	ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+
 	// Finish drawing scene
 	glFinish();
 	glutSwapBuffers();
@@ -150,11 +209,15 @@ void Tester::Resize(int x,int y) {
 	WinX = x;
 	WinY = y;
 	Cam->SetAspect(float(WinX)/float(WinY));
+
+	ImGui_ImplGLUT_ReshapeFunc(x, y);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void Tester::Keyboard(int key,int x,int y) {
+	ImGui_ImplGLUT_KeyboardFunc(key, x, y);
+
 	switch(key) {
 		case 0x1b:		// Escape
 			Quit();
@@ -215,6 +278,13 @@ void Tester::SpecialKeys(int key, int x, int y) {
 ////////////////////////////////////////////////////////////////////////////////
 
 void Tester::MouseButton(int btn,int state,int x,int y) {
+	// Send mouse inputs to GUI
+	ImGui_ImplGLUT_MouseFunc(btn, state, x, y);
+
+	// Don't read input if mouse inside GUI
+	if (ImGui::GetIO().WantCaptureMouse)
+		return;
+
 	if(btn==GLUT_LEFT_BUTTON) {
 		LeftDown = (state==GLUT_DOWN);
 
@@ -272,6 +342,13 @@ glm::vec3 Tester::calculateRayDirectionFromScreen(int x, int y) {
 ////////////////////////////////////////////////////////////////////////////////
 
 void Tester::MouseMotion(int nx,int ny) {
+	// Send mouse inputs to GUI
+	ImGui_ImplGLUT_MotionFunc(nx, ny);
+
+	// Don't read input if mouse inside GUI
+	if (ImGui::GetIO().WantCaptureMouse)
+		return;
+
 	int maxDelta=100;
 	int dx = glm::clamp(nx - MouseX,-maxDelta,maxDelta);
 	int dy = glm::clamp(-(ny - MouseY),-maxDelta,maxDelta);

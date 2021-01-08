@@ -34,7 +34,7 @@ void PhysicsTriangle::applyAerodynamicForce(glm::vec3 wind) {
 	float crossArea = calculateArea() * (glm::dot(glm::normalize(relativeVelocity), normal));
 
 	//calculate force
-	glm::vec3 force = -0.5f * 10.225f * glm::pow(glm::length(relativeVelocity), 2) * 1.75f * crossArea * normal;
+	glm::vec3 force = normal * -0.5f * 10.225f * (float)pow(glm::length(relativeVelocity), 2) * 1.75f * crossArea;
 
 	//apply force to particles
 	/*particles[0]->applyForce(force / 3.f);

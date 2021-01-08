@@ -50,7 +50,7 @@ void Particle::calculatePosition(float deltaTime) {
 
 	//update the position of the particle
 	for (int i = 0; i < iterCount; i++) {
-		position += velocity * (deltaTime / iterCount) + acceleration * glm::pow((deltaTime / iterCount), 2);
+		position += velocity * (deltaTime / iterCount) + acceleration * (float)pow((deltaTime / iterCount), 2);
 		
 		//handle collision with ground plane
 		if (position.y < 0) {
