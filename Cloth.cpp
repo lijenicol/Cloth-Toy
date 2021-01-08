@@ -21,8 +21,8 @@ void Cloth::initCloth() {
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			//create a new particle at a calculated position (the first row of particles will be set to fixed)
-			float xPos = - (float)j * particleSeperation;
-			float yPos = 6 - ((float)i * particleSeperation);
+			float xPos = 1.5 - (float)j * particleSeperation;
+			float yPos = 4 - ((float)i * particleSeperation);
 			float zPos = 0;
 			glm::vec3 position = glm::vec3(xPos, yPos, zPos);
 			Particle* particle = new Particle(0.15f, 0.f, 0.2f, 0.f, position, glm::vec3(0), i == 0 ? true : false);
@@ -279,6 +279,8 @@ void Cloth::draw(glm::mat4 viewProjMtx, GLuint shader) {
 	glm::mat4 mvpMtx = viewProjMtx * modelMtx;
 	glUniformMatrix4fv(glGetUniformLocation(shader, "ModelViewProjMtx"), 1, false, (float*)&mvpMtx);
 
+	glUniform3f(glGetUniformLocation(shader, "DiffuseColor"), 0.1, 0.3, 0.7);
+
 	// Bind to the VAO.
 	glBindVertexArray(vao);
 	// Draw the model
@@ -393,8 +395,8 @@ void Cloth::Reset() {
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			//resets the position of particles
-			float xPos = -(float)j * particleSeperation;
-			float yPos = 6 - ((float)i * particleSeperation);
+			float xPos = 1.5-(float)j * particleSeperation;
+			float yPos = 4 - ((float)i * particleSeperation);
 			float zPos = 0;
 			glm::vec3 position = glm::vec3(xPos, yPos, zPos);
 			int index = i * width + j;

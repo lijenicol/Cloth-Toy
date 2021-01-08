@@ -16,10 +16,10 @@ Plane::Plane() {
 
 	//normals of plane
 	float normals[] = {
-	 0.f,  1.f, 0.f,  // top right
-	 0.f,  1.f, -0.f,  // bottom right
-	-0.f,  1.f, -0.f,  // bottom left
-	-0.f,  1.f, 0.f   // top left 
+	 0.f,  -1.f, 0.f,  // top right
+	 0.f,  -1.f, -0.f,  // bottom right
+	-0.f,  -1.f, -0.f,  // bottom left
+	-0.f,  -1.f, 0.f   // top left 
 	};
 
 	//indices of plane
@@ -69,6 +69,8 @@ void Plane::draw(glm::mat4 viewProjMtx, GLuint shader) {
 
 	glm::mat4 mvpMtx = viewProjMtx * modelMtx;
 	glUniformMatrix4fv(glGetUniformLocation(shader, "ModelViewProjMtx"), 1, false, (float*)&mvpMtx);
+
+	glUniform3f(glGetUniformLocation(shader, "DiffuseColor"), 0.7,0.7,0.7);
 
 	// Bind to the VAO.
 	glBindVertexArray(vao);

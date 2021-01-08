@@ -60,7 +60,7 @@ Tester::Tester(const char *windowTitle,int argc,char **argv) {
 	glutSetWindow( WindowHandle );
 
 	// Background color
-	glClearColor( 0., 0., 0., 1. );
+	glClearColor( 0.95, 0.95, 0.95, 1. );
 
 	// Callbacks
 	glutDisplayFunc( display );

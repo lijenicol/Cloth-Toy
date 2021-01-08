@@ -33,7 +33,7 @@ void Camera::Update() {
 ////////////////////////////////////////////////////////////////////////////////
 
 void Camera::Reset() {
-	FOV=45.0f;
+	FOV=60.0f;
 	Aspect=1.33f;
 	NearClip=0.1f;
 	FarClip=100.0f;

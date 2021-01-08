@@ -54,7 +54,7 @@ void Particle::calculatePosition(float deltaTime) {
 		
 		//handle collision with ground plane
 		if (position.y < 0) {
-			position.y = -position.y + 0.001f;
+			position.y = -position.y + 0.002f;
 			velocity.y = -elasticity * velocity.y;
 
 			float friction = 0.2f;
